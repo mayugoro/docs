@@ -1,6 +1,6 @@
-# 🚀 XL BOT API Documentation
+# 🚀 XL BOT API Documentation 
 
-REST API untuk manajemen nomor XL Axiata - pembelian paket, transfer pulsa, manajemen Circle & Akrab.
+API XL (Go)
 
 ---
 
@@ -1294,12 +1294,18 @@ Menambahkan produk baru.
 **Body**
 ```json
 {
-  "product_key": "xtra_combo_10gb",
-  "product_name": "Xtra Combo 10GB",
-  "price": 60000,
-  "category": "data",
-  "description": "Kuota 10GB",
-  "payment_methods": ["dana", "ovo", "gopay"]
+  "name": "",
+  "display_name": "",
+  "emoji": "",
+  "price": "Rp ",
+  "description": "",
+  "packages": [
+    {
+      "family_code": "",
+      "order": null
+    }
+  ],
+  "method_key": ""
 }
 ```
 
@@ -1317,7 +1323,12 @@ Menambahkan produk baru.
 <details>
 <summary><code>PUT</code> <strong>/api/produk/update/:product_key</strong> - Update Product (Master Key)</summary>
 
-Mengupdate produk yang sudah ada.
+Mengupdate produk yang sudah ada. **product_key** dikirim di URL path.
+
+**URL Example**
+```
+PUT /api/produk/update/xtra_combo_10gb
+```
 
 **Header**
 ```json
@@ -1330,8 +1341,18 @@ Mengupdate produk yang sudah ada.
 **Body**
 ```json
 {
-  "product_name": "Xtra Combo 10GB Updated",
-  "price": 65000
+  "name": "",
+  "display_name": "",
+  "emoji": "",
+  "price": "Rp ",
+  "description": "",
+  "packages": [
+    {
+      "family_code": "",
+      "order": null
+    }
+  ],
+  "method_key": ""
 }
 ```
 
