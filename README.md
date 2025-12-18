@@ -1429,7 +1429,7 @@ Local: http://localhost:8001
 
 ## 📞 Support
 
-Untuk pertanyaan atau dukungan, silakan hubungi admin.
+Untuk pertanyaan atau dukungan, silakan hubungi: [@Mayugoro](https://t.me/Mayugoro)
 
 ---
 
