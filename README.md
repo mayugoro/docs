@@ -6,42 +6,18 @@ API XL (Go)
 
 ## 📋 Daftar Isi
 
-- [Authentication](#-authentication)
-- [API Key Management](#-api-key-management)
-- [OTP Authentication](#-otp-authentication)
-- [Pulsa](#-pulsa)
-- [Profile Settings](#-profile-settings)
-- [Buy (Pembelian Paket)](#-buy-pembelian-paket)
-- [Circle Management](#-circle-management)
-- [Akrab Management](#-akrab-management)
-- [SMS Management](#-sms-management)
-- [MSISDN Management](#-msisdn-management)
-- [Payment Methods (Admin)](#-payment-methods-admin)
-- [Products (Admin)](#-products-admin)
-
----
-
-## 🔐 Authentication
-
-API menggunakan **API Key** yang dikirim melalui header `Authorization`.
-
-### User API Key (Standard)
-Untuk endpoint yang memerlukan autentikasi user:
-```json
-{
-  "Authorization": "user-api-key-here",
-  "Content-Type": "application/json"
-}
-```
-
-### Master Key (Admin Only)
-Untuk endpoint administratif (product, payment, msisdn management):
-```json
-{
-  "Authorization": "master-key-here",
-  "Content-Type": "application/json"
-}
-```
+- [OTP](#otp-authentication)
+- [SMS](#sms-management)
+- [PULSA](#balance--pulsa)
+- [MSISDN](#msisdn-management)
+- [AKRAB](#akrab-management)
+- [CIRCLE](#circle-management)
+- [MASSAL](#massal-operations)
+- [BUY](#buy-pembelian-paket)
+- [PROFILE](#profile-settings)
+- [PRODUK](#products-admin)
+- [PAYMENT](#payment-methods-admin)
+- [APIKEY](#api-key-management)
 
 ---
 
@@ -70,8 +46,18 @@ Membuat API Key baru untuk user. Endpoint ini **tidak memerlukan autentikasi**.
 ```json
 {
   "status": "success",
-  "api_key": "generated-api-key-here",
-  "telegram_id": 123456789
+  "message": "API key berhasil dibuat",
+  "data": {
+    "telegram_id": 123456789,
+    "your_apikey": "generated-api-key-here"
+  }
+}
+```
+
+**Response Error (400)**
+```json
+{
+  "detail": "telegram_id is required"
 }
 ```
 
@@ -101,8 +87,19 @@ Melihat API Key user berdasarkan telegram_id. **Hanya bisa diakses dengan Master
 ```json
 {
   "status": "success",
-  "api_key": "user-api-key-here",
-  "telegram_id": 123456789
+  "message": "API key ditemukan",
+  "data": {
+    "telegram_id": 123456789,
+    "your_apikey": "user-api-key-here",
+    "created_at": "2024-01-01 12:00:00"
+  }
+}
+```
+
+**Response Error (404)**
+```json
+{
+  "detail": "API key tidak ditemukan untuk telegram_id ini"
 }
 ```
 
@@ -136,7 +133,18 @@ Meminta kode OTP untuk login nomor XL. Endpoint ini **tidak memerlukan autentika
 {
   "status": "success",
   "message": "OTP berhasil dikirim",
-  "expires_in": 300
+  "data": {
+    "msisdn": "6281234567890",
+    "otp_id": "otp-id-string"
+  }
+}
+```
+
+**Response Error (400)**
+```json
+{
+  "status": "error",
+  "detail": "Format nomor tidak valid"
 }
 ```
 
@@ -158,7 +166,8 @@ Memverifikasi kode OTP dan menyimpan credential. Endpoint ini **tidak memerlukan
 ```json
 {
   "nomer": "081234567890",
-  "otp": "123456"
+  "telegram_id": 123456789,
+  "otp_code": "123456"
 }
 ```
 
@@ -169,8 +178,17 @@ Memverifikasi kode OTP dan menyimpan credential. Endpoint ini **tidak memerlukan
   "message": "Login berhasil",
   "data": {
     "msisdn": "6281234567890",
+    "telegram_id": 123456789,
     "subscriber_id": "encrypted-subscriber-id"
   }
+}
+```
+
+**Response Error (400)**
+```json
+{
+  "status": "error",
+  "detail": "nomer, telegram_id, and otp_code are required"
 }
 ```
 
@@ -178,7 +196,7 @@ Memverifikasi kode OTP dan menyimpan credential. Endpoint ini **tidak memerlukan
 
 ---
 
-## 💰 Pulsa
+## 💰 Balance & Pulsa
 
 <details>
 <summary><code>POST</code> <strong>/api/pulsa/cek</strong> - Cek Saldo Pulsa</summary>
@@ -205,8 +223,10 @@ Mengecek saldo pulsa dan expired date dari nomor yang terdaftar.
 {
   "status": "success",
   "data": {
-    "balance": 50000,
-    "expired_at": "2025-12-31"
+    "remaining": 95,
+    "expired_at": 1767632399,
+    "pulsa": "Rp. 95",
+    "tenggang": "05 Januari 2026"
   }
 }
 ```
@@ -215,6 +235,13 @@ Mengecek saldo pulsa dan expired date dari nomor yang terdaftar.
 ```json
 {
   "error": "nomer is required"
+}
+```
+
+**Response Error (404)**
+```json
+{
+  "error": "Credential not found"
 }
 ```
 
@@ -249,9 +276,29 @@ Mengirim pulsa ke nomor lain.
   "status": "success",
   "message": "Transfer pulsa berhasil",
   "data": {
-    "amount": 10000,
-    "target": "6281234567899"
+    "transaction_id": "TRX-12345",
+    "pengirim": "6281234567890",
+    "penerima": "6281234567899",
+    "jumlah": 10000,
+    "biaya_pengirim": 100,
+    "biaya_penerima": 50,
+    "total_debet": 10100,
+    "status": "SUCCESS"
   }
+}
+```
+
+**Response Error (400)**
+```json
+{
+  "error": "PIN harus 6 digit angka"
+}
+```
+
+**Response Error (404)**
+```json
+{
+  "error": "Nomor pengelola tidak ditemukan atau token expired"
 }
 ```
 
@@ -356,6 +403,162 @@ Menonaktifkan fitur perlindungan.
 
 ---
 
+## 🔄 Massal Operations
+
+<details>
+<summary><code>POST</code> <strong>/api/circle/massal/add</strong> - Create Circle with Multiple Members</summary>
+
+Membuat Circle baru sekaligus menambahkan beberapa member (maks 3).
+
+**Header**
+```json
+{
+  "Authorization": "your-api-key",
+  "Content-Type": "application/json"
+}
+```
+
+**Body**
+```json
+{
+  "nomer": "081234567890",
+  "nama_pengelola": "Owner",
+  "nama_grub": "Family",
+  "nomer_member1": "0811111111",
+  "nama_member1": "Member 1",
+  "nomer_member2": "0822222222",
+  "nama_member2": "Member 2",
+  "nomer_member3": "0833333333",
+  "nama_member3": "Member 3"
+}
+```
+
+**Response Success (200)**
+```json
+{
+  "status": "success",
+  "data": {
+    "validation": {
+      "all_valid": true,
+      "validated_count": 3
+    },
+    "circle_created": true,
+    "circle_info": {
+      "group_name": "Family",
+      "group_id": "GRP123",
+      "parent_name": "Owner",
+      "parent_msisdn": "6281234567890"
+    },
+    "members": [
+      {
+        "member_number": 1,
+        "msisdn": "628111111111",
+        "nama": "Member 1",
+        "nama_original": "Member 1",
+        "invitation_sent": true,
+        "auto_accepted": true
+      },
+      {
+        "member_number": 2,
+        "msisdn": "628222222222",
+        "nama": "Member 2",
+        "nama_original": "Member 2",
+        "invitation_sent": true,
+        "auto_accepted": true
+      },
+      {
+        "member_number": 3,
+        "msisdn": "628333333333",
+        "nama": "Member 3",
+        "nama_original": "Member 3",
+        "invitation_sent": true,
+        "auto_accepted": true
+      }
+    ],
+    "summary": {
+      "total_members": 3,
+      "successfully_added": 3,
+      "auto_accepted": 3,
+      "failed": 0
+    },
+    "message": "Circle berhasil dibuat dengan semua 3 member diterima"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><code>POST</code> <strong>/api/akrab/massal/add</strong> - Add Member with Quota</summary>
+
+Menambahkan member ke Akrab sekaligus set kuota otomatis (2 step dalam 1 request).
+
+**Header**
+```json
+{
+  "Authorization": "your-api-key",
+  "Content-Type": "application/json"
+}
+```
+
+**Body**
+```json
+{
+  "nomer": "081234567890",
+  "nomer_member": "081234567891",
+  "alias": "John",
+  "posisi_slot": 1,
+  "kuber": 10
+}
+```
+
+**Response Success (200)**
+```json
+{
+  "status": "success",
+  "data": {
+    "step_1_add_member": {
+      "member_added": true,
+      "posisi_slot": 1,
+      "msisdn": "6281234567891",
+      "alias": "John"
+    },
+    "step_2_set_kuber": {
+      "quota_updated": true,
+      "msisdn_member": "6281234567891",
+      "quota_gb": 10,
+      "quota_bytes": 10737418240,
+      "quota_formatted": "10.00 GB"
+    },
+    "message": "Member berhasil ditambahkan dan kuota berhasil diset"
+  }
+}
+```
+
+**Response Partial Success (200)** - Member added but quota failed
+```json
+{
+  "status": "partial_success",
+  "data": {
+    "step_1_add_member": {
+      "member_added": true,
+      "posisi_slot": 1,
+      "msisdn": "6281234567891",
+      "alias": "John"
+    },
+    "step_2_set_kuber": {
+      "quota_updated": false,
+      "error": "Error message here"
+    },
+    "message": "Member berhasil ditambahkan tapi kuota gagal diset"
+  }
+}
+```
+
+</details>
+
+---
+
 ## 🛒 Buy (Pembelian Paket)
 
 <details>
@@ -374,12 +577,14 @@ Mendapatkan daftar produk yang tersedia. Endpoint ini **tidak memerlukan autenti
 ```json
 {
   "status": "success",
-  "total": 10,
+  "total_products": 10,
   "products": [
     {
       "product_key": "xtra_combo_8gb",
-      "product_name": "Xtra Combo 8GB",
-      "price": 50000,
+      "display_name": "Xtra Combo 8GB",
+      "emoji": "📱",
+      "price": "Rp 50000",
+      "markup": "Rp 1000",
       "description": "Kuota 8GB + Bonus"
     }
   ]
@@ -413,13 +618,34 @@ Melakukan pembelian paket data.
 ```json
 {
   "status": "success",
-  "message": "Pembelian berhasil",
+  "message": "Transaksi berhasil diproses",
   "data": {
-    "transaction_code": "TRX123456",
+    "msisdn": "6281234567890",
+    "product_key": "xtra_combo_8gb",
     "product_name": "Xtra Combo 8GB",
-    "price": 50000,
-    "deeplink": "https://payment-url.com/..."
+    "price": "Rp 50000",
+    "markup": "Rp 1000",
+    "transaction_time": "18 Desember 2025 15:30 WIB",
+    "xl_response": {
+      "transaction_code": "TRX123456",
+      "deeplink": "https://payment-url.com/...",
+      "string": "Payment link or confirmation"
+    }
   }
+}
+```
+
+**Response Error (404)**
+```json
+{
+  "error": "Produk tidak ditemukan"
+}
+```
+
+**Response Error (404)**
+```json
+{
+  "error": "Nomor 6281234567890 tidak terdaftar atau token expired"
 }
 ```
 
@@ -452,8 +678,24 @@ Memvalidasi nomor sebelum ditambahkan ke Circle. Endpoint ini **tidak memerlukan
 ```json
 {
   "status": "success",
-  "message": "Nomor valid",
-  "eligible": true
+  "data": {
+    "total_checked": 1,
+    "summary": {
+      "valid": 1,
+      "invalid": 0,
+      "error": 0
+    },
+    "results": [
+      {
+        "msisdn": "6281234567890",
+        "valid": true,
+        "status": "valid",
+        "message": "Member dapat bergabung",
+        "response_code": "200-2001",
+        "pesan_tambahan": "BISA JOIN CIRCLE BOS"
+      }
+    ]
+  }
 }
 ```
 
@@ -462,7 +704,7 @@ Memvalidasi nomor sebelum ditambahkan ke Circle. Endpoint ini **tidak memerlukan
 <details>
 <summary><code>POST</code> <strong>/api/circle/info</strong> - Get Circle Info</summary>
 
-Mendapatkan informasi detail Circle dan anggota.
+Mendapatkan informasi detail Circle dan anggota (dengan decrypt MSISDN dan detail kuota).
 
 **Header**
 ```json
@@ -484,16 +726,50 @@ Mendapatkan informasi detail Circle dan anggota.
 {
   "status": "success",
   "data": {
-    "group_name": "Family Circle",
-    "total_members": 3,
-    "total_quota": "25GB",
-    "members": [
-      {
-        "msisdn": "6281234567890",
-        "name": "Admin",
-        "role": "PARENT"
-      }
-    ]
+    "msisdn": "6281234567890",
+    "circle_info": {
+      "group_id": "GRP123",
+      "group_name": "Family Circle",
+      "group_status": "ACTIVE",
+      "owner_name": "Owner Name",
+      "owner_msisdn": "6281234567890",
+      "total_slots": 4,
+      "used_slots": 2,
+      "empty_slots": 2
+    },
+    "package": {
+      "consumption": 5368709120,
+      "allocation": 10737418240,
+      "consumption_formatted": "5.00 GB",
+      "allocation_formatted": "10.00 GB"
+    },
+    "members": {
+      "parent": [
+        {
+          "msisdn": "6281234567890",
+          "name": "Owner Name",
+          "role": "PARENT",
+          "status": "ACTIVE",
+          "kuota": "10.00 GB",
+          "slot_type": "FREE",
+          "member_id": "MEM000",
+          "join_date": "1 January 2024"
+        }
+      ],
+      "children": [
+        {
+          "msisdn": "6281234567891",
+          "name": "Member 1",
+          "role": "CHILD",
+          "status": "ACTIVE",
+          "kuota": "5.00 GB",
+          "slot_type": "FREE",
+          "member_id": "MEM001",
+          "join_date": "15 January 2024"
+        }
+      ],
+      "total": 2
+    }
   }
 }
 ```
@@ -503,7 +779,7 @@ Mendapatkan informasi detail Circle dan anggota.
 <details>
 <summary><code>POST</code> <strong>/api/circle/create</strong> - Create Circle</summary>
 
-Membuat grup Circle baru.
+Membuat grup Circle baru dengan member pertama (otomatis accept).
 
 **Header**
 ```json
@@ -517,7 +793,10 @@ Membuat grup Circle baru.
 ```json
 {
   "nomer": "081234567890",
-  "group_name": "Family Circle"
+  "nama_pengelola": "Owner Name",
+  "nama_grub": "Family Circle",
+  "nomer_member": "081234567899",
+  "nama_member": "First Member"
 }
 ```
 
@@ -525,10 +804,23 @@ Membuat grup Circle baru.
 ```json
 {
   "status": "success",
-  "message": "Circle berhasil dibuat",
   "data": {
-    "group_id": "SCX_encrypted_id",
-    "group_name": "Family Circle"
+    "circle_created": true,
+    "member_auto_accepted": true,
+    "message": "Circle berhasil dibuat dan member pertama sudah diterima otomatis",
+    "circle_info": {
+      "group_id": "GRP123",
+      "group_name": "Family Circle",
+      "parent_name": "Owner Name",
+      "parent_msisdn": "6281234567890"
+    },
+    "first_member": {
+      "msisdn": "6281234567899",
+      "name": "First Member",
+      "name_original": "First Member",
+      "member_id": "MEM123",
+      "status": "ACTIVE"
+    }
   }
 }
 ```
@@ -538,7 +830,7 @@ Membuat grup Circle baru.
 <details>
 <summary><code>POST</code> <strong>/api/circle/add</strong> - Add Member</summary>
 
-Menambahkan anggota ke Circle.
+Menambahkan anggota ke Circle (otomatis accept).
 
 **Header**
 ```json
@@ -561,10 +853,21 @@ Menambahkan anggota ke Circle.
 ```json
 {
   "status": "success",
-  "message": "Anggota berhasil ditambahkan",
   "data": {
-    "member_id": "encrypted_member_id",
-    "msisdn": "6281234567899"
+    "invitation_sent": true,
+    "member_auto_accepted": true,
+    "message": "Member berhasil ditambahkan dan sudah diterima otomatis",
+    "member": {
+      "msisdn": "6281234567899",
+      "name": "John Doe",
+      "name_original": "John Doe",
+      "member_id": "MEM456",
+      "status": "ACTIVE"
+    },
+    "circle": {
+      "group_id": "GRP123",
+      "group_name": "Family Circle"
+    }
   }
 }
 ```
@@ -574,7 +877,7 @@ Menambahkan anggota ke Circle.
 <details>
 <summary><code>POST</code> <strong>/api/circle/kick</strong> - Kick Member</summary>
 
-Mengeluarkan anggota dari Circle.
+Mengeluarkan anggota dari Circle berdasarkan nomor member.
 
 **Header**
 ```json
@@ -588,7 +891,7 @@ Mengeluarkan anggota dari Circle.
 ```json
 {
   "nomer": "081234567890",
-  "member_id": "encrypted_member_id"
+  "nomer_member": "081234567899"
 }
 ```
 
@@ -596,7 +899,13 @@ Mengeluarkan anggota dari Circle.
 ```json
 {
   "status": "success",
-  "message": "Anggota berhasil dikeluarkan"
+  "data": {
+    "member_removed": true,
+    "message": "Member berhasil dikeluarkan dari circle",
+    "msisdn": "6281234567899",
+    "member_id": "MEM456",
+    "circle_dissolved": false
+  }
 }
 ```
 
@@ -605,7 +914,7 @@ Mengeluarkan anggota dari Circle.
 <details>
 <summary><code>POST</code> <strong>/api/circle/acc</strong> - Accept Invitation</summary>
 
-Menerima undangan Circle secara manual.
+Menerima undangan Circle secara manual (otomatis accept biasanya sudah dilakukan).
 
 **Header**
 ```json
@@ -618,8 +927,7 @@ Menerima undangan Circle secara manual.
 **Body**
 ```json
 {
-  "nomer": "081234567890",
-  "invitation_id": "encrypted_invitation_id"
+  "nomer": "081234567890"
 }
 ```
 
@@ -627,7 +935,19 @@ Menerima undangan Circle secara manual.
 ```json
 {
   "status": "success",
-  "message": "Undangan berhasil diterima"
+  "data": {
+    "invitation_accepted": true,
+    "message": "Berhasil join circle",
+    "member": {
+      "msisdn": "6281234567890",
+      "member_id": "MEM123",
+      "status": "ACTIVE"
+    },
+    "circle": {
+      "group_id": "GRP123",
+      "group_name": "Family Circle"
+    }
+  }
 }
 ```
 
@@ -658,13 +978,16 @@ Mengecek bonus Circle yang tersedia.
 {
   "status": "success",
   "data": {
-    "total_bonus": 2,
-    "bonuses": [
+    "msisdn": "6281234567890",
+    "has_bonus": true,
+    "bonus_list": [
       {
-        "title": "Welcome Bonus 250MB",
-        "description": "Bonus kuota"
+        "name": "Bonus Kuota 5GB",
+        "action_param": "PKG-123",
+        "bonus_type": "LOYALTY"
       }
-    ]
+    ],
+    "total_bonus": 1
   }
 }
 ```
@@ -674,7 +997,7 @@ Mengecek bonus Circle yang tersedia.
 <details>
 <summary><code>POST</code> <strong>/api/circle/klaim-bonus</strong> - Claim Bonus</summary>
 
-Mengklaim bonus Circle.
+Mengklaim bonus Circle berdasarkan nama bonus.
 
 **Header**
 ```json
@@ -688,7 +1011,7 @@ Mengklaim bonus Circle.
 ```json
 {
   "nomer": "081234567890",
-  "bonus_id": "encrypted_bonus_id"
+  "bonus_name": "Bonus Kuota 5GB"
 }
 ```
 
@@ -696,53 +1019,14 @@ Mengklaim bonus Circle.
 ```json
 {
   "status": "success",
-  "message": "Bonus berhasil diklaim"
-}
-```
-
-</details>
-
-<details>
-<summary><code>POST</code> <strong>/api/circle/massal/add</strong> - Add Multiple Members</summary>
-
-Menambahkan beberapa anggota sekaligus ke Circle.
-
-**Header**
-```json
-{
-  "Authorization": "your-api-key",
-  "Content-Type": "application/json"
-}
-```
-
-**Body**
-```json
-{
-  "nomer": "081234567890",
-  "members": [
-    {
-      "nomer_member": "081234567891",
-      "nama_member": "John"
-    },
-    {
-      "nomer_member": "081234567892",
-      "nama_member": "Jane"
-    }
-  ]
-}
-```
-
-**Response Success (200)**
-```json
-{
-  "status": "success",
-  "message": "2 anggota berhasil ditambahkan",
-  "results": [
-    {
-      "msisdn": "6281234567891",
-      "status": "success"
-    }
-  ]
+  "data": {
+    "claimed": true,
+    "bonus_name": "Bonus Kuota 5GB",
+    "bonus_type": "LOYALTY",
+    "action_param": "PKG-123",
+    "destination": "6281234567890",
+    "message": "Bonus berhasil dikirim ke 6281234567890"
+  }
 }
 ```
 
@@ -750,7 +1034,7 @@ Menambahkan beberapa anggota sekaligus ke Circle.
 
 ---
 
-## 👨‍👩‍👧 Akrab Management
+## ⚡ Akrab Management
 
 <details>
 <summary><code>POST</code> <strong>/api/akrab/info</strong> - Get Akrab Info</summary>
@@ -776,16 +1060,32 @@ Mendapatkan informasi detail Akrab dan anggota.
 ```json
 {
   "status": "success",
+  "message": "Family Plan info retrieved",
   "data": {
-    "total_slots": 3,
-    "members": [
-      {
-        "slot": 1,
-        "msisdn": "6281234567891",
-        "alias": "Member 1",
-        "kuota_bersama": 10
+    "data": {
+      "member_info": {
+        "plan_type": "FAMILY_PLAN",
+        "members": [
+          {
+            "msisdn": "6281234567890",
+            "alias": "Parent",
+            "member_type": "PARENT",
+            "family_member_id": "encrypted_id"
+          }
+        ],
+        "additional_members": [
+          {
+            "msisdn": "6281234567891",
+            "alias": "Member 1",
+            "member_type": "ADDITIONAL",
+            "family_member_id": "encrypted_id",
+            "usage": {
+              "quota_allocated": 10737418240
+            }
+          }
+        ]
       }
-    ]
+    }
   }
 }
 ```
@@ -810,8 +1110,8 @@ Menambahkan anggota ke Akrab.
 {
   "nomer": "081234567890",
   "nomer_member": "081234567899",
-  "nama_member": "John Doe",
-  "slot": 1
+  "alias": "John Doe",
+  "posisi_slot": 1
 }
 ```
 
@@ -842,7 +1142,7 @@ Mengeluarkan anggota dari Akrab.
 ```json
 {
   "nomer": "081234567890",
-  "slot": 1
+  "posisi_slot": 1
 }
 ```
 
@@ -850,7 +1150,12 @@ Mengeluarkan anggota dari Akrab.
 ```json
 {
   "status": "success",
-  "message": "Anggota berhasil dikeluarkan"
+  "data": {
+    "member_removed": true,
+    "msisdn_member": "6281234567891",
+    "posisi_slot": 1,
+    "message": "Member berhasil dihapus"
+  }
 }
 ```
 
@@ -873,8 +1178,8 @@ Mengatur kuota bersama untuk anggota Akrab.
 ```json
 {
   "nomer": "081234567890",
-  "slot": 1,
-  "kuota_gb": 10
+  "posisi_slot": 1,
+  "kuber": 10
 }
 ```
 
@@ -882,16 +1187,28 @@ Mengatur kuota bersama untuk anggota Akrab.
 ```json
 {
   "status": "success",
-  "message": "Kuota bersama berhasil diatur"
+  "message": "Quota set successfully",
+  "data": {
+    "posisi_slot": 1,
+    "msisdn": "6281234567891",
+    "kuber_gb": 10,
+    "kuber_bytes": 10737418240,
+    "quota_formatted": "10.00 GB",
+    "original_quota": 0,
+    "original_formatted": "0.00 B"
+  }
 }
-```
 
 </details>
 
-<details>
-<summary><code>POST</code> <strong>/api/akrab/massal/add</strong> - Add Multiple Members</summary>
+---
 
-Menambahkan beberapa anggota sekaligus ke Akrab.
+## 📨 SMS Management
+
+<details>
+<summary><code>POST</code> <strong>/api/sms/cek</strong> - Check SMS/Notifications</summary>
+
+Mengecek notifikasi yang masuk (OTP, Akrab, Pulsa, dll).
 
 **Header**
 ```json
@@ -905,48 +1222,7 @@ Menambahkan beberapa anggota sekaligus ke Akrab.
 ```json
 {
   "nomer": "081234567890",
-  "members": [
-    {
-      "nomer_member": "081234567891",
-      "nama_member": "John",
-      "slot": 1,
-      "kuota_gb": 10
-    }
-  ]
-}
-```
-
-**Response Success (200)**
-```json
-{
-  "status": "success",
-  "message": "Anggota berhasil ditambahkan"
-}
-```
-
-</details>
-
----
-
-## 📨 SMS Management
-
-<details>
-<summary><code>POST</code> <strong>/api/sms/cek</strong> - Check SMS</summary>
-
-Mengecek SMS yang masuk (untuk validasi pembelian addon).
-
-**Header**
-```json
-{
-  "Authorization": "your-api-key",
-  "Content-Type": "application/json"
-}
-```
-
-**Body**
-```json
-{
-  "nomer": "081234567890"
+  "limit": 10
 }
 ```
 
@@ -955,14 +1231,15 @@ Mengecek SMS yang masuk (untuk validasi pembelian addon).
 {
   "status": "success",
   "data": {
-    "total_sms": 5,
-    "messages": [
-      {
-        "from": "MyXL",
-        "message": "Pembelian berhasil",
-        "timestamp": "2025-12-18 10:00:00"
-      }
-    ]
+    "msisdn": "6281234567890",
+    "owner_telegram_id": 123456789,
+    "notifications": {
+      "otp": [],
+      "akrab_pengelola": [],
+      "pulsa": [],
+      "other": [],
+      "total": 0
+    }
   }
 }
 ```
@@ -991,8 +1268,8 @@ Mengecek status nomor di database.
 **Body**
 ```json
 {
-  "nomer": "081234567890",
-  "telegram_id": 123456789
+  "telegram_id": 123456789,
+  "nomer": "081234567890"
 }
 ```
 
@@ -1002,8 +1279,16 @@ Mengecek status nomor di database.
   "status": "success",
   "data": {
     "msisdn": "6281234567890",
-    "telegram_id": 123456789,
-    "is_active": true
+    "exists": true,
+    "owner": {
+      "telegram_id": 123456789,
+      "subscriber_id": "SUB123",
+      "subscription_type": "PREPAID",
+      "created_at": "1 Januari 2024 10:00 WIB",
+      "expired_token": "31 Desember 2024",
+      "berlaku_hingga": "365 hari",
+      "refresh_token": "token-string"
+    }
   }
 }
 ```
@@ -1026,8 +1311,8 @@ Menambahkan nomor baru ke database.
 **Body**
 ```json
 {
-  "nomer": "081234567890",
   "telegram_id": 123456789,
+  "nomer": "081234567890",
   "subscriber_id": "encrypted_subscriber_id",
   "refresh_token": "refresh_token_here",
   "subscription_type": "PREPAID"
@@ -1038,7 +1323,13 @@ Menambahkan nomor baru ke database.
 ```json
 {
   "status": "success",
-  "message": "Nomor berhasil ditambahkan"
+  "message": "Kredensial berhasil ditambahkan",
+  "data": {
+    "msisdn": "6281234567890",
+    "telegram_id": 123456789,
+    "subscriber_id": "encrypted_subscriber_id",
+    "subscription_type": "PREPAID"
+  }
 }
 ```
 
@@ -1060,8 +1351,8 @@ Menghapus nomor dari database.
 **Body**
 ```json
 {
-  "nomer": "081234567890",
-  "telegram_id": 123456789
+  "telegram_id": 123456789,
+  "nomer": "081234567890"
 }
 ```
 
@@ -1069,7 +1360,10 @@ Menghapus nomor dari database.
 ```json
 {
   "status": "success",
-  "message": "Nomor berhasil dihapus"
+  "message": "Nomor berhasil dihapus",
+  "data": {
+    "msisdn": "6281234567890"
+  }
 }
 ```
 
@@ -1091,6 +1385,7 @@ Melakukan registrasi nomor XL dengan NIK dan KK.
 **Body**
 ```json
 {
+  "telegram_id": 123456789,
   "nomer": "081234567890",
   "nik": "1234567890123456",
   "kk": "1234567890123456"
@@ -1101,7 +1396,14 @@ Melakukan registrasi nomor XL dengan NIK dan KK.
 ```json
 {
   "status": "success",
-  "message": "Registrasi berhasil"
+  "message": "Registrasi berhasil",
+  "data": {
+    "nomer": "081234567890",
+    "msisdn": "6281234567890",
+    "response_code": "200-00",
+    "response_message": "Success",
+    "raw_response": {}
+  }
 }
 ```
 
@@ -1123,8 +1425,8 @@ Memindahkan kepemilikan nomor ke telegram_id lain.
 **Body**
 ```json
 {
-  "nomer": "081234567890",
   "telegram_id": 123456789,
+  "nomer": "081234567890",
   "new_telegram_id": 987654321
 }
 ```
@@ -1166,14 +1468,18 @@ Mendapatkan daftar semua metode pembayaran.
 ```json
 {
   "status": "success",
-  "total_methods": 5,
+  "total_methods": 3,
   "methods": [
     {
       "id": 1,
-      "method_key": "dana",
-      "method_name": "DANA",
-      "method_type": "ewallet",
-      "is_active": 1
+      "method_key": "balance",
+      "method_name": "Balance",
+      "method_type": "SETTLEMENT",
+      "config": {},
+      "description": "Payment via balance",
+      "is_active": 1,
+      "created_at": "2024-01-01",
+      "updated_at": "2024-01-01"
     }
   ]
 }
@@ -1197,14 +1503,11 @@ Menambahkan metode pembayaran baru.
 **Body**
 ```json
 {
-  "method_key": "ovo",
-  "method_name": "OVO",
-  "method_type": "ewallet",
-  "config": {
-    "fee": 0,
-    "min_amount": 10000
-  },
-  "description": "OVO Payment"
+  "method_key": "new_method",
+  "method_name": "New Method",
+  "method_type": "SETTLEMENT",
+  "config": {},
+  "description": "New payment method"
 }
 ```
 
@@ -1213,7 +1516,7 @@ Menambahkan metode pembayaran baru.
 {
   "status": "success",
   "message": "Payment method berhasil ditambahkan",
-  "method_key": "ovo"
+  "method_key": "new_method"
 }
 ```
 
@@ -1235,7 +1538,8 @@ Menghapus (soft delete) metode pembayaran.
 ```json
 {
   "status": "success",
-  "message": "Payment method berhasil dihapus"
+  "message": "Payment method berhasil dihapus",
+  "method_key": "method_key"
 }
 ```
 
@@ -1250,12 +1554,12 @@ Menghapus (soft delete) metode pembayaran.
 <details>
 <summary><code>GET</code> <strong>/api/produk/list</strong> - List Products (Public)</summary>
 
-Mendapatkan daftar semua produk. Endpoint ini **tidak memerlukan autentikasi**.
+Mendapatkan daftar semua produk dengan detail lengkap. Endpoint ini **tidak memerlukan autentikasi**.
 
 **Header**
 ```json
 {
-  "Content-Type": "application/json"
+  "Authorization": "master-key-here"
 }
 ```
 
@@ -1263,14 +1567,27 @@ Mendapatkan daftar semua produk. Endpoint ini **tidak memerlukan autentikasi**.
 ```json
 {
   "status": "success",
-  "total": 10,
+  "total_products": 5,
   "products": [
     {
-      "product_key": "xtra_combo_8gb",
-      "product_name": "Xtra Combo 8GB",
-      "price": 50000,
-      "category": "data",
-      "is_active": 1
+      "id": 1,
+      "product_key": "kuota_5gb",
+      "name": "Kuota 5GB",
+      "display_name": "Kuota 5GB",
+      "emoji": "📱",
+      "price": "Rp 15000",
+      "markup": "Rp 1000",
+      "description": "Paket data 5GB",
+      "packages": [],
+      "payment_methods": ["balance"],
+      "payment_for": "BUY_PACKAGE",
+      "ask_overwrite": 0,
+      "overwrite_amount": -1,
+      "token_confirmation_idx": 0,
+      "amount_idx": -1,
+      "is_active": 1,
+      "created_at": "2024-01-01",
+      "updated_at": "2024-01-01"
     }
   ]
 }
@@ -1294,18 +1611,22 @@ Menambahkan produk baru.
 **Body**
 ```json
 {
-  "name": "",
-  "display_name": "",
-  "emoji": "",
-  "price": "Rp ",
-  "description": "",
+  "product_key": "new_product",
+  "name": "New Product",
+  "display_name": "New Product",
+  "emoji": "📱",
+  "price": "Rp 10000",
+  "description": "Description",
   "packages": [
     {
-      "family_code": "",
-      "order": null
+      "family_code": "FAM001",
+      "variant_code": "",
+      "order": 0,
+      "is_enterprise": false,
+      "migration_type": "NONE"
     }
   ],
-  "method_key": ""
+  "method_key": "balance"
 }
 ```
 
@@ -1314,7 +1635,7 @@ Menambahkan produk baru.
 {
   "status": "success",
   "message": "Produk berhasil ditambahkan",
-  "product_key": "xtra_combo_10gb"
+  "product_key": "new_product"
 }
 ```
 
@@ -1341,18 +1662,9 @@ PUT /api/produk/update/xtra_combo_10gb
 **Body**
 ```json
 {
-  "name": "",
-  "display_name": "",
-  "emoji": "",
-  "price": "Rp ",
-  "description": "",
-  "packages": [
-    {
-      "family_code": "",
-      "order": null
-    }
-  ],
-  "method_key": ""
+  "name": "Updated Name",
+  "price": "Rp 12000",
+  "is_active": 1
 }
 ```
 
@@ -1361,7 +1673,7 @@ PUT /api/produk/update/xtra_combo_10gb
 {
   "status": "success",
   "message": "Produk berhasil diupdate",
-  "product_key": "xtra_combo_10gb"
+  "product_key": "product_key"
 }
 ```
 
@@ -1384,7 +1696,7 @@ Menghapus produk dari database.
 {
   "status": "success",
   "message": "Produk berhasil dihapus",
-  "product_key": "xtra_combo_10gb"
+  "product_key": "product_key"
 }
 ```
 
@@ -1415,9 +1727,9 @@ Mengatur markup harga produk.
 ```json
 {
   "status": "success",
-  "message": "Markup berhasil diatur",
-  "product_key": "xtra_combo_10gb",
-  "markup": 5000
+  "message": "Markup berhasil diset",
+  "product_key": "kuota_5gb",
+  "markup": "Rp 2000"
 }
 ```
 
