@@ -18,7 +18,7 @@ Dokumentasi ditujukan untuk developer untuk mengambil data melalui API.
 ## 👤 Akun [⬆ Kembali ke Atas](#-daftar-isi)
 
 <details>
-<summary><code>POST</code> <strong>/api/user/data</strong> - Cek Data Akun</summary>
+<summary><code style="background-color:#1f6f1f;color:white">POST</code> <strong><span style="color:red">/api/user/data</span></strong> - Cek Data Akun</summary>
 
 Mengambil informasi akun user seperti username, saldo, email, dan tanggal terdaftar.
 
@@ -100,7 +100,7 @@ Mengambil informasi akun user seperti username, saldo, email, dan tanggal terdaf
 ## 📦 Cek Stok [⬆ Kembali ke Atas](#-daftar-isi)
 
 <details>
-<summary><code>GET</code> <strong>/api/cekstok/akrab</strong> - Cek Stok Produk Akrab</summary>
+<summary><code style="background-color:#1a6e1a;color:white">GET</code> <strong><span style="color:red">/api/cekstok/akrab</span></strong> - Cek Stok Produk Akrab</summary>
 
 Mengambil daftar semua produk Akrab beserta stok dan harga dari database.
 
@@ -136,7 +136,7 @@ Mengambil daftar semua produk Akrab beserta stok dan harga dari database.
 </details>
 
 <details>
-<summary><code>GET</code> <strong>/api/cekstok/circle</strong> - Cek Stok Produk Circle</summary>
+<summary><code style="background-color:#1a6e1a;color:white">GET</code> <strong><span style="color:red">/api/cekstok/circle</span></strong> - Cek Stok Produk Circle</summary>
 
 Mengambil daftar semua produk Circle beserta stok dan harga dari database.
 
@@ -175,7 +175,7 @@ Mengambil daftar semua produk Circle beserta stok dan harga dari database.
 ## 🛒 Beli Produk [⬆ Kembali ke Atas](#-daftar-isi)
 
 <details>
-<summary><code>POST</code> <strong>/api/stok/buy</strong> - Beli Produk Akrab</summary>
+<summary><code style="background-color:#1f6f1f;color:white">POST</code> <strong><span style="color:red">/api/stok/buy</span></strong> - Beli Produk Akrab</summary>
 
 Membeli produk Akrab dari stok. Gunakan `kode_produk` dari hasil `/api/cekstok/akrab`. Saldo user akan dipotong sesuai harga produk.
 
@@ -289,7 +289,7 @@ Membeli produk Akrab dari stok. Gunakan `kode_produk` dari hasil `/api/cekstok/a
 </details>
 
 <details>
-<summary><code>POST</code> <strong>/api/stok/buy</strong> - Beli Produk Circle</summary>
+<summary><code style="background-color:#1f6f1f;color:white">POST</code> <strong><span style="color:red">/api/stok/buy</span></strong> - Beli Produk Circle</summary>
 
 Membeli produk Circle dari stok. Gunakan `kode_produk` dari hasil `/api/cekstok/circle`. Saldo user akan dipotong sesuai harga produk.
 
@@ -415,7 +415,7 @@ Membeli produk Circle dari stok. Gunakan `kode_produk` dari hasil `/api/cekstok/
 ## 🧾 Transaksi [⬆ Kembali ke Atas](#-daftar-isi)
 
 <details>
-<summary><code>POST</code> <strong>/api/transaksi</strong> - Riwayat Transaksi User</summary>
+<summary><code style="background-color:#1f6f1f;color:white">POST</code> <strong><span style="color:red">/api/transaksi</span></strong> - Riwayat Transaksi User</summary>
 
 Mendapatkan daftar riwayat transaksi milik user. Data mencakup transaksi pembelian dan riwayat deposit dari 35 hari terakhir.
 
@@ -527,7 +527,7 @@ Mendapatkan daftar riwayat transaksi milik user. Data mencakup transaksi pembeli
 </details>
 
 <details>
-<summary><code>POST</code> <strong>/api/transaksi</strong> - Cek Detail Transaksi</summary>
+<summary><code style="background-color:#1f6f1f;color:white">POST</code> <strong><span style="color:red">/api/transaksi</span></strong> - Cek Detail Transaksi</summary>
 
 Mengecek status dan detail **satu transaksi** berdasarkan `trx_id`. Berguna untuk memantau hasil transaksi yang sebelumnya dikembalikan sebagai `pending`.
 
