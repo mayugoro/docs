@@ -6,16 +6,16 @@ Dokumentasi ditujukan untuk developer untuk mengambil data melalui API.
 
 ## 📋 Daftar Isi
 
-- [Akun](#-akun)
-- [Cek Stok](#-cek-stok)
-- [Beli Produk](#-beli-produk)
-- [Transaksi](#-transaksi)
+- [Akun](#-akun--kembali-ke-atas)
+- [Cek Stok](#-cek-stok--kembali-ke-atas)
+- [Beli Produk](#-beli-produk--kembali-ke-atas)
+- [Transaksi](#-transaksi--kembali-ke-atas)
 
 <a name="top"></a>
 
 ---
 
-## � Akun
+## 👤 Akun [⬆ Kembali ke Atas](#-daftar-isi)
 
 <details>
 <summary><code>POST</code> <strong>/api/user/data</strong> - Cek Data Akun</summary>
@@ -97,7 +97,7 @@ Mengambil informasi akun user seperti username, saldo, email, dan tanggal terdaf
 
 ---
 
-## �📦 Cek Stok
+## 📦 Cek Stok [⬆ Kembali ke Atas](#-daftar-isi)
 
 <details>
 <summary><code>GET</code> <strong>/api/cekstok/akrab</strong> - Cek Stok Produk Akrab</summary>
