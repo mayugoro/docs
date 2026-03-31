@@ -1,6 +1,6 @@
-# 📖 Dokumentasi API
+# 🛒 Dokumentasi API — Buyer
 
-Dokumentasi ditujukan untuk developer untuk mengambil data melalui API.
+Dokumentasi untuk buyer yang ingin membeli produk **Akrab** & **Circle** via API.
 
 ---
 
