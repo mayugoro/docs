@@ -113,8 +113,6 @@ Content-Type: application/json
 }
 ```
 </details>
-```
-
 
 ## 🛒 Beli Produk [⬆ Kembali ke Atas](#-daftar-isi)
 
